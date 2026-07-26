@@ -10,11 +10,14 @@
   margin: 0 auto;
   padding: 120px 20px 80px;
   align-items: start;
+  width: 100%;
+  box-sizing: border-box; /* Previene desbordes en el layout */
 }
 
 .main-content {
   grid-area: main;
   width: 100%;
+  min-width: 0; /* Vital en CSS Grid para evitar que hijos forcen scroll */
 }
 
 /* --- BASE DE LA GRILLA EN EXPLORAR --- */
@@ -24,6 +27,7 @@
   gap: 25px;
   justify-content: center;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .gamer-card {
@@ -77,6 +81,8 @@
   background: rgba(13, 2, 33, 0.7);
   border-radius: 15px;
   backdrop-filter: blur(10px);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .sidebar-title {
@@ -149,6 +155,7 @@
   width: 100%;
   outline: none;
   transition: 0.3s;
+  box-sizing: border-box;
 }
 
 .gamer-select-small:focus {
@@ -163,6 +170,7 @@
   gap: 20px;
   justify-content: center;
   align-items: center;
+  width: 100%;
 }
 
 .explore-loading {
@@ -182,7 +190,7 @@
   .explore-layout {
     grid-template-columns: 1fr;
     grid-template-areas: "sidebar" "main";
-    padding-top: 100px;
+    padding: 100px 15px 50px; /* Ajustamos padding horizontal */
     gap: 20px;
   }
 
@@ -199,6 +207,7 @@
     padding-bottom: 8px;
     gap: 8px;
     scrollbar-width: thin;
+    max-width: 100%;
   }
 
   .category-buttons-wrapper::-webkit-scrollbar {
@@ -232,25 +241,30 @@
   }
 }
 
-/* --- ADAPTABILIDAD RESPONSIVE (MÓVIL) --- */
+/* --- ADAPTABILIDAD RESPONSIVE (MÓVIL PANTALLAS PEQUEÑAS < 600px y 400px) --- */
 @media (max-width: 600px) {
+  .explore-layout {
+    padding: 90px 12px 40px; /* Reducimos padding en los costados para pantallas angostas */
+  }
+
   /* 1. Forzamos estricta y únicamente 1 sola columna */
   .items-grid {
     grid-template-columns: 1fr !important;
     justify-items: center;
     gap: 20px;
+    width: 100%;
   }
 
-  /* 2. Limitamos el ancho para que la tarjeta no desborde y se vea centrada */
+  /* 2. Las tarjetas ocupan el 100% disponible sin desbordar */
   .gamer-card {
     width: 100%;
-    max-width: 300px;
+    max-width: 100%; /* Permite adaptarse desde 320px hasta 600px sin cortarse */
     min-height: auto;
     padding: 15px;
     box-sizing: border-box;
   }
 
-  /* 3. Mantenemos la foto dentro de la tarjeta sin cortes raros */
+  /* 3. Mantenemos la foto dentro de la tarjeta sin cortes */
   .image-container {
     height: 180px;
     width: 100%;
@@ -258,5 +272,11 @@
 
   .image-container img {
     object-fit: cover;
+  }
+
+  /* Ajustes para paginación corta en móviles */
+  .explore-pagination {
+    gap: 10px;
+    font-size: 0.9rem;
   }
 }

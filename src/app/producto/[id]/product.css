@@ -1,125 +1,67 @@
-
-
-.product-visual {
-  background: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
-  border: 1px solid #222;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 500px;
-}
-
-.main-icon { font-size: 10rem; }
-
-.breadcrumb {
-  font-family: var(--font-orbitron);
-  font-size: 0.7rem;
-  color: var(--neon-cyan);
-}
-
-.title {
-  font-family: var(--font-orbitron);
-  font-size: 3rem;
-  margin: 10px 0;
-}
-
-.description {
-  color: #aaa;
-  line-height: 1.6;
-  margin-bottom: 30px;
-}
-
-.price-tag {
-  font-family: var(--font-orbitron);
-  font-size: 2.5rem;
-  color: var(--neon-pink);
-  margin-bottom: 30px;
-}
-
-.actions {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 40px;
-}
-
-.add-btn {
-  flex: 1;
-  background: var(--neon-cyan);
-  color: black;
-  border: none;
-  font-family: var(--font-orbitron);
-  font-weight: bold;
-  padding: 15px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.add-btn:hover { box-shadow: 0 0 20px var(--neon-cyan); }
-
-.wish-btn {
-  background: transparent;
-  border: 1px solid #333;
-  color: white;
-  width: 50px;
-  cursor: pointer;
-}
-
-.specs {
-  border-top: 1px solid #222;
-  padding-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.spec-item { font-size: 0.8rem; color: #666; }
-.spec-item span { color: white; font-weight: bold; margin-right: 5px; }
-
-/* Responsive para pantallas viejas */
-@media (max-width: 800px) {
-  .product-container { grid-template-columns: 1fr; }
-}
-
 /* src/app/producto/[id]/product.css */
 
 .product-layout {
-  background-color: var(--bg-main) !important; /* El azul marino profundo */
+  background-color: var(--bg-main) !important;
   min-height: 100vh;
   color: white;
 }
 
-/* Contenedor de la imagen principal */
+.product-detail-container {
+  padding-top: 120px;
+  padding-bottom: 60px;
+}
+
+.product-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* IMÁGENES */
 .main-image-container {
   background: radial-gradient(circle, rgba(0, 85, 255, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%);
   border: 1px solid var(--glass-border) !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 500px;
+  height: 450px;
   overflow: hidden;
   border-radius: 12px;
 }
 
-/* LA CLAVE: object-fit contain para que no se corte el producto */
 .main-product-img {
   width: 100%;
   height: 100%;
-  object-fit: contain !important; /* Cambiado de cover a contain */
-  padding: 20px; /* Margen interno para que no toque los bordes */
+  object-fit: contain !important;
+  padding: 20px;
   transition: transform 0.5s ease;
 }
 
 .main-product-img:hover {
-  transform: scale(1.05); /* Un pequeño zoom suave al pasar el mouse */
+  transform: scale(1.05);
 }
 
-/* Miniaturas de la galería */
+.gallery-grid {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
 .gallery-thumb {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  cursor: pointer;
   border-radius: 4px;
   transition: 0.3s;
   opacity: 0.6;
   background: var(--bg-card);
+  flex-shrink: 0;
 }
 
 .gallery-thumb:hover, .gallery-thumb.active {
@@ -128,7 +70,7 @@
   box-shadow: 0 0 10px var(--electric-blue);
 }
 
-/* Stock Tag */
+/* INFORMACIÓN DEL PRODUCTO */
 .stock-tag {
   font-family: var(--font-orbitron);
   font-size: 12px;
@@ -141,3 +83,105 @@
 .in-stock { background: rgba(0, 255, 122, 0.1); color: #00ff7a; border: 1px solid #00ff7a; }
 .low-stock { background: rgba(255, 122, 0, 0.1); color: #ff7a00; border: 1px solid #ff7a00; }
 .no-stock { background: rgba(255, 0, 122, 0.1); color: var(--neon-pink); border: 1px solid var(--neon-pink); }
+
+.product-title {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  font-family: var(--font-orbitron);
+  word-break: break-word;
+}
+
+.product-serial {
+  color: var(--electric-blue);
+  font-family: var(--font-orbitron);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.price-container {
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.price-old-detail {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.price-main-detail {
+  font-size: 2.5rem;
+  color: var(--neon-cyan);
+  font-weight: bold;
+  font-family: var(--font-orbitron);
+}
+
+.product-desc {
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  line-height: 1.8;
+  color: var(--text-dim);
+  margin-bottom: 30px;
+}
+
+.product-buy-btn {
+  width: 100%;
+  height: 65px;
+  font-size: 1.1rem;
+}
+
+/* =========================================================
+   ADAPTABILIDAD RESPONSIVE (TABLETS Y MÓVILES)
+   ========================================================= */
+@media (max-width: 900px) {
+  .product-detail-container {
+    padding-top: 100px;
+    padding-bottom: 40px;
+  }
+
+  .product-layout-grid {
+    grid-template-columns: 1fr; /* Columna única */
+    gap: 30px;
+  }
+
+  .main-image-container {
+    height: 350px;
+  }
+
+  .product-title {
+    font-size: 2rem;
+  }
+
+  .price-main-detail {
+    font-size: 2rem;
+  }
+
+  .price-old-detail {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-image-container {
+    height: 280px;
+  }
+
+  .product-title {
+    font-size: 1.6rem;
+  }
+
+  .product-desc {
+    padding: 15px;
+    font-size: 0.95rem;
+  }
+
+  .product-buy-btn {
+    height: 55px;
+    font-size: 1rem;
+  }
+}

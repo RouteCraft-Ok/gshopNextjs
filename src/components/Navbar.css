@@ -46,7 +46,7 @@
 }
 
 .nav-dropdown-wrapper {
-  position: relative;
+  position: relative; /* Asegura que el menú absolute se posicione con respecto a este contenedor */
 }
 
 .nav-explore-btn {
@@ -67,43 +67,54 @@
   border-color: var(--neon-blue);
 }
 
-/* --- DESPLEGABLE (MEGA MENU) --- */
+/* --- DESPLEGABLE (MEGA MENU CORREGIDO) --- */
 .nav-mega-menu {
   position: absolute;
-  top: 55px;
+  top: calc(100% + 8px); /* Aparece justo abajo del botón */
   left: 0;
-  width: 220px;
-  background: #0d0221;
+  min-width: 170px;
+  width: max-content;
+  max-width: 200px;
+  background: rgba(13, 2, 33, 0.98);
   border: 1px solid var(--neon-blue);
   border-radius: 8px;
-  padding: 10px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-  z-index: 100;
+  gap: 3px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 210, 255, 0.2);
+  z-index: 1000;
 }
 
 .menu-category-item {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  padding: 10px;
-  font-size: 13px;
+  padding: 8px 12px;
+  font-size: 11px;
   font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.5px;
   border-radius: 4px;
-  transition: 0.2s;
+  transition: 0.2s ease;
+  white-space: nowrap;
 }
 
 .menu-category-item:hover {
-  background: rgba(0, 210, 255, 0.15);
+  background: rgba(0, 210, 255, 0.2);
   color: var(--neon-blue);
   padding-left: 15px;
+}
+
+.menu-category-item.special {
+  color: var(--neon-cyan);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 2px;
+  padding-top: 8px;
 }
 
 .menu-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.1);
-  margin: 5px 0;
+  margin: 3px 0;
 }
 
 /* --- SECCIÓN CENTRO (BUSCADOR) --- */
@@ -271,6 +282,11 @@
     flex-wrap: wrap;
     gap: 12px;
     padding: 0 16px;
+  }
+
+  .nav-mega-menu {
+    left: 0; /* Asegura la alineación en móvil */
+    min-width: 150px;
   }
 
   .nav-search-container {

@@ -18,7 +18,6 @@ interface ProductFormState {
 }
 
 export default function AdminPage() {
-  // Prevenir Hydration Mismatch esperando al montaje del cliente
   const [mounted, setMounted] = useState(false);
 
   const globalContext = useGlobal() as any;
@@ -72,7 +71,7 @@ export default function AdminPage() {
   }, []);
 
   if (!mounted) {
-    return <div className="admin-container" style={{ padding: '120px 20px', color: '#fff', textAlign: 'center' }}>Cargando Panel de Control...</div>;
+    return <div className="admin-container" style={{ color: '#fff', textAlign: 'center' }}>Cargando Panel de Control...</div>;
   }
 
   const totalVendido = ventas.reduce((acc, v) => acc + Number(v?.total || 0), 0);
@@ -115,7 +114,6 @@ export default function AdminPage() {
               actuales = productData.images_extras;
             }
 
-            // Aplanamos el array para evitar anidación excesiva
             const combinadas = [...actuales, ...cargadas].flat(Infinity) as string[];
             setProductData(prev => ({ ...prev, images_extras: combinadas }));
             setIsUploading(false);
@@ -192,7 +190,6 @@ export default function AdminPage() {
       return;
     }
 
-    // Aplanar y limpiar el arreglo de Base64
     let cleanExtras: string[] = [];
     if (Array.isArray(productData.images_extras)) {
       cleanExtras = productData.images_extras
@@ -201,7 +198,6 @@ export default function AdminPage() {
         .filter(img => img.length > 0);
     }
 
-    // Convertimos el arreglo de imágenes extras a un JSON string plano
     const productToSave = {
       id: editingId ? Number(editingId) : null,
       name: String(productData.name),
@@ -214,7 +210,6 @@ export default function AdminPage() {
       on_sale: Boolean(productData.on_sale),
       discount_percentage: Number(productData.discount_percentage || 0),
       image_url: String(productData.image_url || ''),
-      // 💡 AQUÍ ESTÁ LA CLAVE: Lo enviamos como String JSON para evitar el chequeo de arreglos anidados
       images_extras: JSON.stringify(cleanExtras) 
     };
 
@@ -260,218 +255,234 @@ export default function AdminPage() {
 
   const safeProductos = Array.isArray(productos) ? productos : [];
 
+  const filteredItems = safeProductos
+    .filter((p: any) => {
+      const productName = p && p.name ? p.name.toLowerCase() : "";
+      return productName.includes(searchTerm.toLowerCase());
+    })
+    .slice().reverse();
+
+  const totalStockPages = Math.ceil(filteredItems.length / itemsPerStockPage);
+  const currentPage = stockPage > totalStockPages ? Math.max(1, totalStockPages) : stockPage;
+  const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerStockPage, currentPage * itemsPerStockPage);
+
   return (
-    <div className="admin-container" style={{ padding: '120px 20px 40px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}> 
-        
-        {/* KPI DASHBOARD */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-          <div className="glass" style={{ padding: '20px' }}>
-            <p style={{ fontSize: '10px', color: 'var(--electric-blue)', margin: 0 }}>VENTAS NETAS</p>
-            <h2 style={{ color: 'var(--neon-cyan)', margin: '5px 0' }}>{formatCurrency(totalVendido)}</h2>
-            <button onClick={cleanDuplicateSales} style={{ background: 'none', border: 'none', color: 'var(--neon-pink)', cursor: 'pointer', fontSize: '9px', padding: 0 }}>[LIMPIAR DUPLICADOS]</button>
-          </div>
-          <div className="glass" style={{ padding: '20px', border: isMaintenance ? '1px solid var(--neon-pink)' : '1px solid var(--neon-green)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ fontSize: '10px', color: isMaintenance ? 'var(--neon-pink)' : 'var(--neon-blue)', margin: 0 }}>MODO VACACIONES</p>
-                <h4 style={{ margin: '5px 0', color: 'white' }}>{isMaintenance ? 'SISTEMA OFFLINE' : 'SISTEMA ONLINE'}</h4>
-              </div>
-              <label className="gamer-switch">
-                <input type="checkbox" checked={!!isMaintenance} onChange={(e) => setIsMaintenance && setIsMaintenance(e.target.checked)} />
-                <span className="gamer-slider"></span>
-              </label>
-            </div>
-          </div>
+    <div className="admin-container">
+      
+      {/* KPI DASHBOARD */}
+      <div className="admin-kpi-grid">
+        <div className="glass" style={{ padding: '20px' }}>
+          <p style={{ fontSize: '10px', color: 'var(--electric-blue)', margin: 0 }}>VENTAS NETAS</p>
+          <h2 style={{ color: 'var(--neon-cyan)', margin: '5px 0' }}>{formatCurrency(totalVendido)}</h2>
+          <button onClick={cleanDuplicateSales} style={{ background: 'none', border: 'none', color: 'var(--neon-pink)', cursor: 'pointer', fontSize: '9px', padding: 0 }}>[LIMPIAR DUPLICADOS]</button>
         </div>
-
-        {/* FORMULARIO DE CARGA */}
-        <div className="glass" style={{ padding: '25px', marginBottom: '40px', border: isEditing ? '1px solid var(--neon-pink)' : '1px solid rgba(0, 210, 255, 0.2)' }}>
-          <h3 className="glitch-small" style={{ fontSize: '14px', marginBottom: '20px' }}>
-            {isEditing ? `[!] EDITANDO ID: ${editingId}` : '[+] NUEVO REGISTRO'}
-          </h3>
-          <div className="admin-form-grid">
-            <input type="text" placeholder="NOMBRE" value={productData.name} onChange={e => setProductData({...productData, name: e.target.value})} className="admin-input" />
-            <div className="admin-flex-mobile-col" style={{ display: 'flex', gap: '10px' }}>
-              <select className="admin-input" value={productData.category} onChange={e => setProductData({...productData, category: e.target.value})} style={{flex: 1}}>
-                <option value="JUEGOS">JUEGOS</option>
-                <option value="CONSOLAS">CONSOLAS</option>
-                <option value="PC GAMER">PC GAMER</option>
-                <option value="PERIFÉRICOS">PERIFÉRICOS</option>
-              </select>
-              <input type="text" placeholder="SUB-CAT" value={productData.sub_cat} onChange={e => setProductData({...productData, sub_cat: e.target.value.toUpperCase()})} className="admin-input" style={{flex: 1}} />
-            </div>
-            <input type="number" placeholder="PRECIO BASE" value={productData.price} onChange={e => setProductData({...productData, price: e.target.value})} className="admin-input" />
-            <input type="number" placeholder="STOCK" value={productData.stock} onChange={e => setProductData({...productData, stock: e.target.value})} className="admin-input" />
-            
-            <div className="admin-span-2 admin-flex-mobile-col" style={{ gridColumn: 'span 2', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '5px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-               <label style={{ color: 'white', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <input type="checkbox" checked={productData.on_sale} onChange={e => setProductData({...productData, on_sale: e.target.checked})} /> ¿EN OFERTA?
-              </label>
-              {productData.on_sale && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                  <input type="number" placeholder="%" value={productData.discount_percentage} onChange={e => setProductData({...productData, discount_percentage: parseInt(e.target.value) || 0})} className="admin-input" style={{ width: '80px' }} />
-                  <span style={{ color: 'var(--neon-green)', fontSize: '12px' }}>
-                    PRECIO FINAL: {formatCurrency(Number(productData.price) * (1 - (productData.discount_percentage / 100)))}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="admin-span-2 admin-form-grid" style={{ gridColumn: 'span 2', background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '5px' }}>
-              <div>
-                <label style={{ color: 'var(--neon-cyan)', fontSize: '10px', display: 'block', marginBottom: '5px' }}>FOTO PRINCIPAL (CARDS)</label>
-                <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, true)} className="admin-input" style={{ fontSize: '10px' }} />
-                {productData.image_url && <p style={{ fontSize: '9px', color: 'var(--neon-green)', marginTop: '5px' }}>✓ Cargada</p>}
-              </div>
-              <div>
-                <label style={{ color: 'var(--neon-cyan)', fontSize: '10px', display: 'block', marginBottom: '5px' }}>FOTOS EXTRAS (GALERÍA)</label>
-                <input type="file" accept="image/*" multiple onChange={(e) => handleFileUpload(e, false)} className="admin-input" style={{ fontSize: '10px' }} />
-                <p style={{ fontSize: '9px', opacity: 0.6, marginTop: '5px' }}>{Array.isArray(productData.images_extras) && productData.images_extras.length > 0 ? `${productData.images_extras.length} archivos detectados` : 'Sin extras'}</p>
-              </div>
-            </div>
-
-            <textarea placeholder="DESCRIPCIÓN" value={productData.description} onChange={e => setProductData({...productData, description: e.target.value})} className="admin-input admin-span-2" style={{ gridColumn: 'span 2', minHeight: '80px' }} />
-            <button className="nav-btn admin-span-2" style={{ gridColumn: 'span 2', height: '50px' }} onClick={handleSave} disabled={isUploading}>
-              {isEditing ? '⚡ ACTUALIZAR DATOS' : '🚀 LANZAR PRODUCTO'}
-            </button>
-          </div>
-        </div>
-
-        {/* LOG DE VENTAS REALES */}
-        <div className="admin-inventory-section" style={{ marginBottom: '50px' }}>
-          <h2 className="sidebar-title" style={{ color: 'var(--neon-green)', fontSize: '1.2rem' }}>LOG_DE_VENTAS_CONFIRMADAS</h2>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>FECHA</th>
-                  <th>CLIENTE</th>
-                  <th>PRODUCTOS</th>
-                  <th>TOTAL PAGADO</th>
-                  <th>MÉTODO</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ventas.length > 0 ? ventas.map((v, i) => (
-                  <tr key={i}>
-                    <td style={{ fontSize: '12px' }}><span className="show-mobile-only" style={{ float: 'left', fontWeight: 'bold' }}>FECHA:</span>{v?.fecha ? new Date(v.fecha).toLocaleDateString() : '---'}</td>
-                    <td style={{ fontSize: '11px' }}><span className="show-mobile-only" style={{ float: 'left', fontWeight: 'bold' }}>CLIENTE:</span>{v?.cliente_email}</td>
-                    <td style={{ fontSize: '10px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        {v?.productos && Array.isArray(v.productos) ? (
-                          v.productos.map((p: any, idx: number) => (
-                            <span key={idx} style={{ color: 'rgba(255,255,255,0.8)' }}>
-                              • {p?.name} <b style={{ color: 'var(--neon-cyan)' }}>(x{p?.quantity || 1})</b>
-                            </span>
-                          ))
-                        ) : (
-                          <span style={{ opacity: 0.5 }}>Sin datos de items</span>
-                        )}
-                      </div>
-                    </td>
-                    <td style={{ color: 'var(--electric-blue)', fontWeight: 'bold' }}>{formatCurrency(v?.total || 0)}</td>
-                    <td>
-                      <span className="discount-badge" style={{ background: '#009EE3', color: 'black', fontSize: '9px', padding: '2px 6px', borderRadius: '4px' }}>
-                        {v?.metodo_pago || '---'}
-                      </span>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', opacity: 0.5 }}>NO HAY VENTAS CONFIRMADAS</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* CONTROL DE STOCK */}
-        <div className="admin-inventory-section">
-          <div className="admin-header-flex">
-            <h2 className="sidebar-title" style={{ fontSize: '1.2rem', margin: 0 }}>CONTROL_STOCK</h2>
+        <div className="glass" style={{ padding: '20px', border: isMaintenance ? '1px solid var(--neon-pink)' : '1px solid var(--neon-green)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-               <input 
-                type="text" 
-                placeholder="🔍 BUSCAR PRODUCTO..." 
-                className="admin-input admin-input-search" 
-                style={{ width: '300px', border: '1px solid var(--neon-cyan)' }} 
-                onChange={(e) => { setSearchTerm(e.target.value); setStockPage(1); }} 
-              />
+              <p style={{ fontSize: '10px', color: isMaintenance ? 'var(--neon-pink)' : 'var(--neon-blue)', margin: 0 }}>MODO VACACIONES</p>
+              <h4 style={{ margin: '5px 0', color: 'white' }}>{isMaintenance ? 'SISTEMA OFFLINE' : 'SISTEMA ONLINE'}</h4>
+            </div>
+            <label className="gamer-switch">
+              <input type="checkbox" checked={!!isMaintenance} onChange={(e) => setIsMaintenance && setIsMaintenance(e.target.checked)} />
+              <span className="gamer-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* FORMULARIO DE CARGA */}
+      <div className="glass" style={{ padding: '25px', marginBottom: '40px', border: isEditing ? '1px solid var(--neon-pink)' : '1px solid rgba(0, 210, 255, 0.2)' }}>
+        <h3 className="glitch-small" style={{ fontSize: '14px', marginBottom: '20px' }}>
+          {isEditing ? `[!] EDITANDO ID: ${editingId}` : '[+] NUEVO REGISTRO'}
+        </h3>
+        <div className="admin-form-grid">
+          <input type="text" placeholder="NOMBRE" value={productData.name} onChange={e => setProductData({...productData, name: e.target.value})} className="admin-input" />
+          <div className="admin-flex-mobile-col" style={{ display: 'flex', gap: '10px' }}>
+            <select className="admin-input" value={productData.category} onChange={e => setProductData({...productData, category: e.target.value})} style={{flex: 1}}>
+              <option value="JUEGOS">JUEGOS</option>
+              <option value="CONSOLAS">CONSOLAS</option>
+              <option value="PC GAMER">PC GAMER</option>
+              <option value="PERIFÉRICOS">PERIFÉRICOS</option>
+            </select>
+            <input type="text" placeholder="SUB-CAT" value={productData.sub_cat} onChange={e => setProductData({...productData, sub_cat: e.target.value.toUpperCase()})} className="admin-input" style={{flex: 1}} />
+          </div>
+          <input type="number" placeholder="PRECIO BASE" value={productData.price} onChange={e => setProductData({...productData, price: e.target.value})} className="admin-input" />
+          <input type="number" placeholder="STOCK" value={productData.stock} onChange={e => setProductData({...productData, stock: e.target.value})} className="admin-input" />
+          
+          <div className="admin-span-2 admin-flex-mobile-col" style={{ gridColumn: 'span 2', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '5px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+             <label style={{ color: 'white', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input type="checkbox" checked={productData.on_sale} onChange={e => setProductData({...productData, on_sale: e.target.checked})} /> ¿EN OFERTA?
+            </label>
+            {productData.on_sale && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <input type="number" placeholder="%" value={productData.discount_percentage} onChange={e => setProductData({...productData, discount_percentage: parseInt(e.target.value) || 0})} className="admin-input" style={{ width: '80px' }} />
+                <span style={{ color: 'var(--neon-green)', fontSize: '12px' }}>
+                  PRECIO FINAL: {formatCurrency(Number(productData.price) * (1 - (productData.discount_percentage / 100)))}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="admin-span-2 admin-form-grid" style={{ gridColumn: 'span 2', background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '5px' }}>
+            <div>
+              <label style={{ color: 'var(--neon-cyan)', fontSize: '10px', display: 'block', marginBottom: '5px' }}>FOTO PRINCIPAL (CARDS)</label>
+              <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, true)} className="admin-input" style={{ fontSize: '10px' }} />
+              {productData.image_url && <p style={{ fontSize: '9px', color: 'var(--neon-green)', marginTop: '5px' }}>✓ Cargada</p>}
+            </div>
+            <div>
+              <label style={{ color: 'var(--neon-cyan)', fontSize: '10px', display: 'block', marginBottom: '5px' }}>FOTOS EXTRAS (GALERÍA)</label>
+              <input type="file" accept="image/*" multiple onChange={(e) => handleFileUpload(e, false)} className="admin-input" style={{ fontSize: '10px' }} />
+              <p style={{ fontSize: '9px', opacity: 0.6, marginTop: '5px' }}>{Array.isArray(productData.images_extras) && productData.images_extras.length > 0 ? `${productData.images_extras.length} archivos detectados` : 'Sin extras'}</p>
             </div>
           </div>
-          
-          <div style={{ overflowX: 'auto' }}>
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>IMG</th>
-                  <th>PRODUCTO</th>
-                  <th>STOCK</th>
-                  <th>PRECIO BASE</th>
-                  <th>ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(() => {
-                  const filteredItems = safeProductos
-                    .filter((p: any) => {
-                      const productName = p && p.name ? p.name.toLowerCase() : "";
-                      return productName.includes(searchTerm.toLowerCase());
-                    })
-                    .slice().reverse();
-                  
-                  const totalStockPages = Math.ceil(filteredItems.length / itemsPerStockPage);
-                  const currentPage = stockPage > totalStockPages ? Math.max(1, totalStockPages) : stockPage;
-                  const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerStockPage, currentPage * itemsPerStockPage);
 
-                  return (
-                    <>
-                      {paginatedItems.map((p: any) => (
-                        <tr key={p?.id || Math.random()} className="admin-row-hover">
-                          <td>#{p?.id}</td>
-                          <td>
-                            <img 
-                              src={p?.image_url || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=150&auto=format&fit=crop"} 
-                              alt="thumb" 
-                              style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} 
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.onerror = null; 
-                                target.src = "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=150&auto=format&fit=crop";
-                              }}
-                            />
-                          </td>
-                          <td style={{ fontWeight: 'bold' }}>{p?.name || 'Sin nombre'}</td>
-                          <td style={{ color: Number(p?.stock) <= 3 ? 'var(--neon-pink)' : 'white' }}>{p?.stock ?? 0} u.</td>
-                          <td>{formatCurrency(p?.price || 0)}</td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                              <button onClick={() => handleEdit(p)} className="nav-btn" style={{ padding: '6px 12px', fontSize: '10px' }}>EDIT</button>
-                              <button onClick={() => handleDelete(p?.id, p?.name || '')} className="nav-btn" style={{ padding: '6px 12px', fontSize: '10px', background: 'var(--neon-pink)' }}>DELETE</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {totalStockPages > 1 && (
-                        <tr>
-                          <td colSpan={6}>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', padding: '15px', alignItems: 'center' }}>
-                              <button className="nav-btn" disabled={currentPage === 1} onClick={() => setStockPage(currentPage - 1)} style={{ padding: '5px 15px' }}>ATRÁS</button>
-                              <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px' }}>{currentPage} / {totalStockPages}</span>
-                              <button className="nav-btn" disabled={currentPage >= totalStockPages} onClick={() => setStockPage(currentPage + 1)} style={{ padding: '5px 15px' }}>SIGUIENTE</button>
-                            </div>
-                          </td>
-                        </tr>
+          <textarea placeholder="DESCRIPCIÓN" value={productData.description} onChange={e => setProductData({...productData, description: e.target.value})} className="admin-input admin-span-2" style={{ gridColumn: 'span 2', minHeight: '80px' }} />
+          <button className="nav-btn admin-span-2" style={{ gridColumn: 'span 2', height: '50px' }} onClick={handleSave} disabled={isUploading}>
+            {isEditing ? '⚡ ACTUALIZAR DATOS' : '🚀 LANZAR PRODUCTO'}
+          </button>
+        </div>
+      </div>
+
+      {/* LOG DE VENTAS REALES */}
+      <div className="admin-inventory-section" style={{ marginBottom: '50px' }}>
+        <h2 className="sidebar-title" style={{ color: 'var(--neon-green)', fontSize: '1.2rem', wordBreak: 'break-word', marginBottom: '15px' }}>
+          LOG DE VENTAS CONFIRMADAS
+        </h2>
+        <div className="table-responsive-wrapper">
+          <table className="admin-table ventas-table">
+            <thead>
+              <tr>
+                <th>FECHA</th>
+                <th>CLIENTE</th>
+                <th>PRODUCTOS</th>
+                <th>TOTAL PAGADO</th>
+                <th>MÉTODO</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ventas.length > 0 ? ventas.map((v, i) => (
+                <tr key={i} className="admin-card-row">
+                  <td className="cell-fecha">
+                    <span className="mobile-label">📅 FECHA:</span>
+                    {v?.fecha ? new Date(v.fecha).toLocaleDateString() : '---'}
+                  </td>
+                  <td className="cell-cliente">
+                    <span className="mobile-label">👤 CLIENTE:</span>
+                    {v?.cliente_email}
+                  </td>
+                  <td className="cell-productos">
+                    <span className="mobile-label">🛒 PRODUCTOS:</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      {v?.productos && Array.isArray(v.productos) ? (
+                        v.productos.map((p: any, idx: number) => (
+                          <span key={idx} style={{ color: 'rgba(255,255,255,0.8)' }}>
+                            • {p?.name} <b style={{ color: 'var(--neon-cyan)' }}>(x{p?.quantity || 1})</b>
+                          </span>
+                        ))
+                      ) : (
+                        <span style={{ opacity: 0.5 }}>Sin datos de items</span>
                       )}
-                    </>
-                  );
-                })()}
-              </tbody>
-            </table>
+                    </div>
+                  </td>
+                  <td className="cell-total">
+                    <span className="mobile-label">💲 TOTAL:</span>
+                    <strong style={{ color: 'var(--electric-blue)' }}>{formatCurrency(v?.total || 0)}</strong>
+                  </td>
+                  <td className="cell-metodo">
+                    <span className="mobile-label">💳 MÉTODO:</span>
+                    <span className="discount-badge" style={{ background: '#009EE3', color: 'black', fontSize: '10px', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
+                      {v?.metodo_pago || '---'}
+                    </span>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', opacity: 0.5 }}>NO HAY VENTAS CONFIRMADAS</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* CONTROL DE STOCK */}
+      <div className="admin-inventory-section">
+        <div className="admin-header-flex">
+          <h2 className="sidebar-title" style={{ fontSize: '1.2rem', margin: 0 }}>CONTROL_STOCK</h2>
+          <div>
+            <input 
+              type="text" 
+              placeholder="🔍 BUSCAR PRODUCTO..." 
+              className="admin-input admin-input-search" 
+              style={{ width: '100%', maxWidth: '300px', border: '1px solid var(--neon-cyan)' }} 
+              onChange={(e) => { setSearchTerm(e.target.value); setStockPage(1); }} 
+            />
           </div>
+        </div>
+        
+        <div className="table-responsive-wrapper">
+          <table className="admin-table stock-table">
+            <thead>
+              <tr>
+                <th style={{ width: '50px' }}>ID</th>
+                <th style={{ width: '50px' }}>IMG</th>
+                <th>PRODUCTO</th>
+                <th style={{ width: '90px' }}>STOCK</th>
+                <th style={{ width: '120px' }}>PRECIO BASE</th>
+                <th style={{ textAlign: 'right', width: '140px' }}>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedItems.map((p: any) => (
+                <tr key={p?.id || Math.random()} className="admin-card-row">
+                  <td className="cell-id">
+                    <span className="mobile-label">🆔 ID:</span>
+                    #{String(p?.id || '').slice(0, 8)}
+                  </td>
+                  <td className="cell-img">
+                    <img 
+                      src={p?.image_url || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=150&auto=format&fit=crop"} 
+                      alt="thumb" 
+                      className="card-thumb"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null; 
+                        target.src = "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=150&auto=format&fit=crop";
+                      }}
+                    />
+                  </td>
+                  <td className="cell-title">
+                    <span className="mobile-label">🎮 PRODUCTO:</span>
+                    <strong>{p?.name || 'Sin nombre'}</strong>
+                  </td>
+                  <td className="cell-stock">
+                    <span className="mobile-label">📦 STOCK:</span>
+                    <span style={{ color: Number(p?.stock) <= 3 ? 'var(--neon-pink)' : 'var(--neon-green)', fontWeight: 'bold' }}>
+                      {p?.stock ?? 0} u.
+                    </span>
+                  </td>
+                  <td className="cell-price">
+                    <span className="mobile-label">💲 PRECIO:</span>
+                    <strong style={{ color: 'var(--neon-cyan)' }}>{formatCurrency(p?.price || 0)}</strong>
+                  </td>
+                  <td className="cell-actions">
+                    <div className="action-buttons-wrapper">
+                      <button onClick={() => handleEdit(p)} className="nav-btn btn-edit">EDITAR</button>
+                      <button onClick={() => handleDelete(p?.id, p?.name || '')} className="nav-btn btn-delete">ELIMINAR</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {totalStockPages > 1 && (
+            <div className="pagination-container">
+              <button className="nav-btn" disabled={currentPage === 1} onClick={() => setStockPage(currentPage - 1)}>ATRÁS</button>
+              <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '13px', color: 'var(--neon-cyan)' }}>{currentPage} / {totalStockPages}</span>
+              <button className="nav-btn" disabled={currentPage >= totalStockPages} onClick={() => setStockPage(currentPage + 1)}>SIGUIENTE</button>
+            </div>
+          )}
         </div>
       </div>
     </div>

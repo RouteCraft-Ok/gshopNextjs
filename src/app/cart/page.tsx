@@ -3,7 +3,7 @@
 import { useGlobal } from '@/context/CartContext';
 import { processStockUpdate, registrarVenta } from '@/app/actions';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './cart.css'; 
 
 export default function CartPage() {
@@ -13,6 +13,13 @@ export default function CartPage() {
   const [deliveryMethod, setDeliveryMethod] = useState<'sucursal' | 'domicilio'>('sucursal');
   const [address, setAddress] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // 🛠️ Control de hidratación: Evita discrepancias SSR vs Cliente
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const cartItems = Array.isArray(cart) ? cart : [];
 
@@ -34,7 +41,6 @@ export default function CartPage() {
     setIsProcessing(true);
 
     try {
-      // 1. LLAMADA PREVENTIVA AL SERVIDOR (Para stock si no es WhatsApp)
       if (metodo !== "WhatsApp") {
         const stockRes = await processStockUpdate(cartItems);
         if (stockRes.success === false) {
@@ -42,7 +48,6 @@ export default function CartPage() {
         }
       }
 
-      // 2. REGISTRAR EN EL SERVIDOR
       const ventaRes = await registrarVenta({
         productos: cartItems,
         total: total,
@@ -55,7 +60,6 @@ export default function CartPage() {
         return;
       }
 
-      // 3. GUARDAR EL LOG DE VENTAS EN LOCALSTORAGE (Optimizado y liviano)
       const productosOptimizados = cartItems.map((item: any) => ({
         id: String(item.id),
         name: String(item.name || ''),
@@ -75,13 +79,10 @@ export default function CartPage() {
         const ventasGuardadas = JSON.parse(
           localStorage.getItem("gshop_ventas") || "[]"
         );
-        
-        // Mantener solo las últimas 20 ventas para no agotar la cuota de localStorage
         const ventasActualizadas = [nuevaVenta, ...ventasGuardadas].slice(0, 20);
         localStorage.setItem("gshop_ventas", JSON.stringify(ventasActualizadas));
       } catch (storageErr) {
         console.warn("⚠️ No se pudo guardar la venta en localStorage por cuota excedida:", storageErr);
-        // Resguardo: guardar solo la venta actual si falló el historial
         try {
           localStorage.setItem("gshop_ventas", JSON.stringify([nuevaVenta]));
         } catch (e) {
@@ -89,7 +90,6 @@ export default function CartPage() {
         }
       }
 
-      // 4. ACTUALIZAR INVENTARIO
       if (typeof setProductos === "function") {
         setProductos((prevProductos: any[]) => {
           const stockActualizado = prevProductos.map((p: any) => {
@@ -121,9 +121,8 @@ export default function CartPage() {
         });
       }
 
-      // 5. ACCIÓN FINAL SEGÚN EL MÉTODO DE PAGO
       if (metodo === "WhatsApp") {
-        const phoneNumber = "5491100000000"; // Cambiar por número real
+        const phoneNumber = "5491100000000"; 
         let message = `🎮 *NUEVO PEDIDO*%0A%0A`;
 
         cartItems.forEach((item: any) => {
@@ -145,7 +144,6 @@ export default function CartPage() {
         );
       }
 
-      // 6. LIMPIEZA DEL CARRITO Y REFRESH
       clearCart();
 
       if (typeof refreshProducts === "function") {
@@ -160,17 +158,29 @@ export default function CartPage() {
     }
   };
 
+  // 🛠️ Renderizado preventivo antes del montaje en cliente para evitar Mismatch
+  if (!isMounted) {
+    return (
+      <div className="cart-page-container glass">
+        <h1 className="cart-title">TU <span>INVENTARIO</span></h1>
+        <div className="cart-empty-state">
+          <p>Cargando mochila...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="cart-page-container glass" style={{ marginTop: '100px', padding: '40px', maxWidth: '1000px', margin: '100px auto', color: 'white' }}>
+    <div className="cart-page-container glass">
       <h1 className="cart-title">TU <span>INVENTARIO</span></h1>
       
       {cartItems.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '50px' }}>
+        <div className="cart-empty-state">
           <p>Mochila vacía. ¿Buscas loot?</p>
-          <Link href="/" className="nav-btn" style={{ display: 'inline-block', marginTop: '20px', textDecoration: 'none' }}>VOLVER A LA TIENDA</Link>
+          <Link href="/" className="nav-btn btn-home-link">VOLVER A LA TIENDA</Link>
         </div>
       ) : (
-        <div className="cart-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px' }}>
+        <div className="cart-grid">
           
           {/* LISTA DE PRODUCTOS */}
           <div className="cart-items-list">
@@ -180,57 +190,57 @@ export default function CartPage() {
               const tieneDescuento = item.on_sale === true && Number(item.discount_percentage) > 0;
 
               return (
-                <div key={index} className="cart-item glass" style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', marginBottom: '15px', alignItems: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                    <img src={item.image_url} alt={item.name} width={70} height={70} style={{ objectFit: 'cover', borderRadius: '5px' }} />
-                    <div>
-                      <h4 style={{ margin: '0 0 5px 0', fontSize: '1.1rem' }}>{item.name}</h4>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div key={index} className="cart-item glass">
+                  <div className="cart-item-info">
+                    <img src={item.image_url} alt={item.name} className="cart-item-img" />
+                    <div className="cart-item-details">
+                      <h4>{item.name}</h4>
+                      <div className="cart-item-prices">
                         {tieneDescuento ? (
                           <>
-                            <span style={{ textDecoration: 'line-through', color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>{formatCurrency(precioBase)}</span>
-                            <span style={{ color: 'var(--neon-green)', fontWeight: 'bold' }}>{formatCurrency(precioFinal)}</span>
-                            <span style={{ background: 'var(--neon-pink)', color: 'white', fontSize: '0.6rem', padding: '2px 5px', borderRadius: '3px' }}>-{item.discount_percentage}%</span>
+                            <span className="price-old">{formatCurrency(precioBase)}</span>
+                            <span className="price-final">{formatCurrency(precioFinal)}</span>
+                            <span className="discount-tag">-{item.discount_percentage}%</span>
                           </>
                         ) : (
-                          <span style={{ color: 'var(--neon-green)' }}>{formatCurrency(precioBase)}</span>
+                          <span className="price-final">{formatCurrency(precioBase)}</span>
                         )}
                       </div>
-                      <p style={{ margin: '5px 0 0 0', fontSize: '0.8rem', opacity: 0.7 }}>Cantidad: {item.quantity || 1}</p>
+                      <p className="cart-item-qty">Cantidad: {item.quantity || 1}</p>
                     </div>
                   </div>
-                  <button onClick={() => removeFromCart(index)} style={{ background: 'rgba(255,0,110,0.1)', border: '1px solid #ff006e', color: '#ff006e', cursor: 'pointer', padding: '5px 10px', borderRadius: '5px' }}>✕</button>
+                  <button onClick={() => removeFromCart(index)} className="btn-remove-cart" title="Eliminar ítem">✕</button>
                 </div>
               );
             })}
           </div>
 
           {/* RESUMEN DE COMPRA */}
-          <div className="cart-summary glass" style={{ padding: '25px', border: '1px solid var(--neon-blue)', height: 'fit-content' }}>
-            <h3 style={{ marginTop: 0, borderBottom: '1px solid rgba(0,210,255,0.3)', paddingBottom: '10px' }}>RESUMEN DE MISIÓN</h3>
+          <div className="cart-summary glass">
+            <h3>RESUMEN DE MISIÓN</h3>
             
-            <div style={{ margin: '20px 0' }}>
-              <label style={{ fontSize: '0.8rem', color: 'var(--neon-blue)' }}>MÉTODO DE ENTREGA</label>
-              <select className="admin-input" style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.5)', color: 'white', marginTop: '5px' }} value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value as any)}>
+            <div className="summary-field">
+              <label>MÉTODO DE ENTREGA</label>
+              <select className="admin-input delivery-select" value={deliveryMethod} onChange={(e) => setDeliveryMethod(e.target.value as any)}>
                 <option value="sucursal">RETIRO EN PUNTO DE GUARDADO (LOCAL)</option>
                 <option value="domicilio">ENVÍO POR MENSAJERÍA</option>
               </select>
               
               {deliveryMethod === 'domicilio' && (
-                <input type="text" placeholder="Tu dirección de entrega..." className="admin-input" style={{ width: '100%', marginTop: '12px', padding: '12px' }} value={address} onChange={(e) => setAddress(e.target.value)} />
+                <input type="text" placeholder="Tu dirección de entrega..." className="admin-input address-input" value={address} onChange={(e) => setAddress(e.target.value)} />
               )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', padding: '15px 0', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-              <span style={{ fontSize: '1.2rem' }}>TOTAL:</span>
-              <span style={{ color: 'var(--neon-green)', fontSize: '1.5rem', fontWeight: 'bold', textShadow: '0 0 10px rgba(57,255,20,0.3)' }}>{formatCurrency(total)}</span>
+            <div className="summary-total-row">
+              <span>TOTAL:</span>
+              <span className="total-amount">{formatCurrency(total)}</span>
             </div>
 
-            <button onClick={() => ejecutarCompra('WhatsApp')} disabled={isProcessing} className="nav-btn" style={{ width: '100%', background: '#25D366', color: 'black', marginBottom: '15px', padding: '15px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
+            <button onClick={() => ejecutarCompra('WhatsApp')} disabled={isProcessing} className="nav-btn btn-whatsapp">
               {isProcessing ? 'PROCESANDO...' : 'PEDIR POR WHATSAPP'}
             </button>
             
-            <button onClick={() => ejecutarCompra('Mercado Pago')} disabled={isProcessing} className="nav-btn" style={{ width: '100%', background: '#009EE3', padding: '15px', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>
+            <button onClick={() => ejecutarCompra('Mercado Pago')} disabled={isProcessing} className="nav-btn btn-mercadopago">
               PAGAR CON MERCADO PAGO
             </button>
           </div>

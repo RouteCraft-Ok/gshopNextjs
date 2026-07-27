@@ -20,16 +20,20 @@
   min-width: 0; /* Vital en CSS Grid para evitar que hijos forcen scroll */
 }
 
-/* --- BASE DE LA GRILLA EN EXPLORAR --- */
+/* --- BASE DE LA GRILLA (Tarjetas centradas y fijas) --- */
 .items-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Centra las tarjetas perfectamente */
   gap: 25px;
-  justify-content: center;
   width: 100%;
+  max-width: 1200px; /* Limita el ancho máximo para que no se pegue a los bordes */
+  margin: 0 auto;    /* Centra la grilla completa */
+  padding: 0 15px;   /* Deja un margen respirable respecto a los bordes del celular */
   box-sizing: border-box;
 }
 
+/* --- TARJETA GAMER CON TAMAÑO FIJO E INDESTRUCTIBLE --- */
 .gamer-card {
   background: rgba(13, 2, 33, 0.7);
   border: 1px solid rgba(0, 210, 255, 0.2);
@@ -37,13 +41,18 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  align-items: center; /* Centra el contenido horizontalmente dentro de la tarjeta */
+  align-items: center;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  width: 100%;
+
+  /* TAMANIO ESTRICTO: Para que NUNCA cambien de tamaño */
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+  height: 460px; /* Ancla la altura exacta para que tampoco bailen en vertical */
+  
   box-sizing: border-box;
-  min-height: 450px;
 }
 
 .gamer-card:hover {
@@ -220,11 +229,11 @@
     box-sizing: border-box;
   }
 
-  /* ACÁ ESTÁ EL CAMBIO: Salto de renglón automático sin scrollbar */
+  /* Salto de renglón automático en las etiquetas de categoría */
   .category-buttons-wrapper {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap; /* Hace que bajen de renglón automáticamente */
+    flex-wrap: wrap;
     gap: 8px;
     width: 100%;
     max-width: 100%;
@@ -242,7 +251,7 @@
 
   .filter-group-btn:hover,
   .filter-group-btn.active {
-    padding-left: 14px; /* Mantiene proporciones parejas en modo etiqueta */
+    padding-left: 14px;
     border-left: 1px solid var(--neon-blue, #00d2ff);
   }
 
@@ -281,18 +290,9 @@
   }
 
   .items-grid {
-    grid-template-columns: 1fr !important;
-    justify-items: center;
     gap: 20px;
     width: 100%;
-  }
-
-  .gamer-card {
-    width: 100%;
-    max-width: 100%;
-    min-height: auto;
-    padding: 15px;
-    box-sizing: border-box;
+    padding: 0 10px;
   }
 
   .image-container {
@@ -312,5 +312,14 @@
   .explore-pagination {
     gap: 10px;
     font-size: 0.9rem;
+  }
+}
+
+/* Regla especial solo para celulares extremadamente angostos (< 320px) */
+@media (max-width: 320px) {
+  .gamer-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 }

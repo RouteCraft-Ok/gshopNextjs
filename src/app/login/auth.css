@@ -1,11 +1,12 @@
 .auth-container {
-  min-height: 90vh;
+  min-height: calc(100vh - 80px); /* Ocupa el alto disponible sin dejar huecos */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 12px;
+  padding: 40px 12px 60px 12px; /* Reducimos el colchón superior para pegar la tarjeta más arriba */
   background: radial-gradient(circle at center, #1a0b2e 0%, #050110 100%);
   width: 100%;
+  box-sizing: border-box;
 }
 
 .auth-card {

@@ -3,8 +3,8 @@
 /* --- ESTRUCTURA GENERAL DE EXPLORE --- */
 .explore-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  grid-template-areas: "sidebar main";
+  grid-template-columns: 1fr;
+  grid-template-areas: "sidebar" "main";
   gap: 30px;
   max-width: 1400px;
   margin: 0 auto;
@@ -46,7 +46,7 @@
   position: relative;
   overflow: hidden;
 
-  /* TAMANIO ESTRICTO: Para que NUNCA cambien de tamaño */
+  /* TAMAÑO ESTRICTO: Para que NUNCA cambien de tamaño */
   width: 280px !important;
   min-width: 280px !important;
   max-width: 280px !important;
@@ -88,8 +88,6 @@
 /* --- SIDEBAR DE FILTROS --- */
 .filters-sidebar {
   grid-area: sidebar;
-  position: sticky;
-  top: 100px;
   padding: 25px;
   z-index: 10;
   border: 1px solid rgba(0, 210, 255, 0.15);
@@ -206,8 +204,45 @@
   text-decoration: none;
 }
 
-/* --- ADAPTABILIDAD RESPONSIVE (TABLET Y MÓVIL < 900px) --- */
-@media (max-width: 900px) {
+/* ========================================================= */
+/* --- DESDE 1024px HASTA 1279px (FILTRO AL COSTADO, 2 PRODUCTOS) --- */
+/* ========================================================= */
+@media (min-width: 1024px) {
+  .explore-layout {
+    grid-template-columns: 280px 1fr;
+    grid-template-areas: "sidebar main";
+  }
+
+  .filters-sidebar {
+    position: sticky;
+    top: 100px;
+  }
+
+  /* FORZAR MÁXIMO 2 COLUMNAS DE PRODUCTOS */
+  .items-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 280px) !important;
+    justify-content: center;
+  }
+}
+
+/* ========================================================= */
+/* --- DESDE 1280px EN ADELANTE (FILTRO AL COSTADO, 3 PRODUCTOS) --- */
+/* ========================================================= */
+@media (min-width: 1280px) {
+  /* HABILITA ESPACIO SUFICIENTE PARA 3 COLUMNAS */
+  .items-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 280px) !important;
+    justify-content: center;
+  }
+}
+
+/* ========================================================= */
+/* --- MANTENER FILTROS ARRIBA EN TABLETS Y DISPOSITIVOS (HASTA 1023px) --- */
+/* (Incluye resoluciones como 912x1368, iPad, Surface, etc.) */
+/* ========================================================= */
+@media (max-width: 1023px) {
   .explore-layout {
     grid-template-columns: 1fr;
     grid-template-areas: "sidebar" "main";
@@ -229,7 +264,7 @@
     box-sizing: border-box;
   }
 
-  /* Salto de renglón automático en las etiquetas de categoría */
+  /* Salto de renglón en categorías de filtro */
   .category-buttons-wrapper {
     display: flex;
     flex-direction: row;
@@ -238,7 +273,6 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    overflow: visible;
   }
 
   .filter-group-btn {
@@ -275,7 +309,9 @@
   }
 }
 
-/* --- ADAPTABILIDAD RESPONSIVE (MÓVIL PANTALLAS PEQUEÑAS < 600px) --- */
+/* ========================================================= */
+/* --- ADAPTABILIDAD EN MÓVILES PEQUEÑOS (< 600px) --- */
+/* ========================================================= */
 @media (max-width: 600px) {
   .explore-layout {
     padding: 85px 10px 40px;

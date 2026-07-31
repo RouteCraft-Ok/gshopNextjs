@@ -97,29 +97,41 @@
   font-size: 10px;
 }
 
-/* --- GRILLA DE PRODUCTOS --- */
+/* --- GRILLA Y TARJETAS DE TAMAÑO FIJO --- */
 .items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, 280px); /* Ancho de columna estrictamente fijo */
   gap: 25px;
-  justify-content: center;
+  justify-content: center; /* Centra la grilla horizontalmente */
   width: 100%;
   max-width: 1200px;
+  margin: 0 auto;
 }
 
 .gamer-card {
   background: rgba(13, 2, 33, 0.7);
   border: 1px solid rgba(0, 210, 255, 0.2);
-  padding: 20px;
+  padding: 15px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  width: 100%;
+  
+  /* MEDIDAS CONGELADAS PARA TODAS LAS PANTALLAS */
+  width: 280px;
+  height: 400px; 
   box-sizing: border-box;
-  min-height: 450px;
+}
+
+/* ========================================================= */
+/* --- A PARTIR DE 1024px COMPORTAMIENTO DE 3 COLUMNAS --- */
+/* ========================================================= */
+@media (min-width: 1024px) {
+  .items-grid {
+    grid-template-columns: repeat(3, 280px); /* 3 columnas exactamente fijas */
+  }
 }
 
 .gamer-card:hover {
@@ -130,9 +142,9 @@
 
 .image-container {
   width: 100%;
-  height: 220px;
+  height: 180px; /* Altura de imagen fija */
   overflow: hidden;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,8 +165,8 @@
 
 .gamer-card h3 {
   font-family: 'Orbitron', sans-serif;
-  font-size: 1rem;
-  margin: 10px 0 5px 0;
+  font-size: 0.95rem;
+  margin: 5px 0;
   color: #fff;
   height: 2.4em;
   overflow: hidden;
@@ -167,7 +179,7 @@
   font-family: 'Press Start 2P';
   font-size: 8px;
   color: var(--neon-blue);
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 /* --- PRECIOS --- */
@@ -184,9 +196,9 @@
 .current-price {
   font-family: 'Press Start 2P';
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   background: rgba(0, 0, 0, 0.9);
-  padding: 6px 10px;
+  padding: 5px 8px;
   border: 1px solid var(--neon-green);
   box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
 }
@@ -260,7 +272,7 @@
   background: rgba(0, 85, 255, 0.1);
   border: 1px solid var(--electric-blue);
   color: white;
-  padding: 12px;
+  padding: 10px;
   font-family: var(--font-orbitron);
   font-size: 10px;
   font-weight: bold;
@@ -312,27 +324,24 @@
   100% { transform: scale(1); }
 }
 
-/* --- MEDIA QUERIES RESPONSIVE (MÓVIL Y TABLET) --- */
+/* --- AJUSTES EN MÓVIL (MANTIENE TAMAÑO DE TARJETA INTEGRAL) --- */
 @media (max-width: 600px) {
   .content-wrapper {
     padding: 0 12px 60px 12px;
   }
 
-  /* LA SOLUCIÓN AL ANCHO DE TARJETAS EN MOBILE */
+  .glitch {
+    font-size: clamp(1.5rem, 6vw, 2.5rem) !important;
+    letter-spacing: 0px;
+  }
+
+  .hero-section {
+    padding: 20px 0 10px 0;
+  }
+
+  /* Si la pantalla es extremadamente chica (<300px), permite escalar */
   .items-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    justify-content: center;
-  }
-
-  .gamer-card {
-    max-width: 280px;  /* Evita que se estire a lo ancho */
-    margin: 0 auto;    /* Centra la tarjeta */
-    min-height: auto;
-    padding: 15px;
-  }
-
-  .image-container {
-    height: 180px;     /* Mantiene la proporción perfecta */
+    grid-template-columns: repeat(auto-fit, minmax(260px, 280px));
   }
 
   .filter-container-home {
@@ -349,6 +358,7 @@
   }
 
   .hero-subtitle {
-    font-size: 10px;
+    font-size: 9px;
+    letter-spacing: 1px;
   }
 }

@@ -166,9 +166,9 @@ html, body {
 }
 
 /* =========================================================
-   MÓVILES: TRANSFORMACIÓN A TARJETAS DUAL
+   MÓVILES: TRANSFORMACIÓN A TARJETAS DUAL (< 768px)
    ========================================================= */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .admin-container {
     /* 🛠️ SOLUCIÓN MÓVIL: 90px arriba para no tapar las KPIs con el navbar móvil */
     padding: 90px 10px 50px !important;
@@ -192,7 +192,7 @@ html, body {
     gap: 10px;
   }
 
-  /* 1. OCULTAMOS EL ENCABEZADO DE LA TABLA */
+  /* 1. OCULTAMOS EL ENCABEZADO DE LA TABLA EN PANTALLAS PEQUEÑAS */
   .admin-table thead {
     display: none !important;
   }
@@ -210,7 +210,7 @@ html, body {
     width: 100% !important;
   }
 
-  /* 3. CADA TR SE CONVIERTE EN UNA TARJETA TARJETA GLASS */
+  /* 3. CADA TR SE CONVIERTE EN UNA TARJETA GLASS */
   .admin-card-row {
     display: flex !important;
     flex-direction: column !important;
@@ -261,7 +261,7 @@ html, body {
     text-align: left !important;
   }
 
-  /* 5. VISIBILIDAD DE LABELS */
+  /* 5. VISIBILIDAD DE LABELS EN MÓVIL */
   .mobile-label {
     display: inline-block !important;
     font-weight: bold;
@@ -270,16 +270,20 @@ html, body {
     font-size: 11px;
   }
 
-  /* 6. DISEÑO ESPECIAL PARA IMAGEN Y BOTONES EN TARJETAS */
+  /* 6. DISEÑO ESPECIAL PARA IMAGEN Y BOTONES EN TARJETAS MÓVILES */
+  /* Imagen contenida y fija (sin deformar la tarjeta) */
   .cell-img {
     justify-content: center !important;
-    padding: 10px 0 !important;
+    padding: 8px 0 !important;
   }
 
   .card-thumb {
-    width: 100% !important;
-    height: 140px !important;
+    width: 80px !important;
+    height: 80px !important;
+    object-fit: cover !important;
     border-radius: 8px !important;
+    margin: 0 auto !important;
+    border: 1px solid var(--glass-border);
   }
 
   .action-buttons-wrapper {

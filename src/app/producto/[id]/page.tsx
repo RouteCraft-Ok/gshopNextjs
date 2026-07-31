@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGlobal } from '@/context/CartContext';
 import { useParams } from 'next/navigation';
 import './product.css';
@@ -10,10 +10,31 @@ export default function ProductDetailPage() {
   const { productos, addToCart, isMaintenance } = useGlobal();
   const [displayImage, setDisplayImage] = useState<string | null>(null);
 
-  const product = productos.find((p: any) => String(p.id) === String(id));
+  // CONTROL DE HIDRATACIÓN (Soluciona el error SSR vs Client en Next.js)
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const product = productos?.find((p: any) => String(p.id) === String(id));
+
+  // 1. Mientras se monta en el navegador, mostramos la estructura neutra para evitar Mismatch
+  if (!mounted) {
+    return (
+      <div className="product-layout" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: 'var(--neon-cyan)', fontFamily: 'Orbitron, sans-serif' }}>CARGANDO DATOS DEL SISTEMA...</p>
+      </div>
+    );
+  }
+
+  // 2. Si ya está montado y realmente no existe el producto
   if (!product) {
-    return <div className="glitch">[!] PRODUCTO NO ENCONTRADO</div>;
+    return (
+      <div className="product-layout" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glitch">[!] PRODUCTO NO ENCONTRADO</div>
+      </div>
+    );
   }
 
   const prod = product as any;

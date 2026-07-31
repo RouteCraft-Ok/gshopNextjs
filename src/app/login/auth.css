@@ -1,14 +1,27 @@
 .auth-container {
-  min-height: calc(100vh - 80px); /* Ocupa el alto disponible sin dejar huecos */
+  /* Al poner 100vh exactos y margin-top negativo compensamos el alto del Navbar sin dejar franjas */
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 12px 60px 12px; /* Reducimos el colchón superior para pegar la tarjeta más arriba */
-  background: radial-gradient(circle at center, #1a0b2e 0%, #050110 100%);
+  padding: 100px 12px 40px 12px; /* 100px arriba para no pisar el Navbar */
+  
+  /* Forzamos el degradado completo */
+  background: radial-gradient(circle at center, #1a0b2e 0%, #050110 100%) !important;
   width: 100%;
   box-sizing: border-box;
+
+  /* Evita destellos oscuros antes de la hidratación */
+  margin-top: -80px; /* Ajusta según el alto de tu Navbar si es fijo/absolute */
 }
 
+/* En móviles bajamos el padding superior para que quede más arriba la tarjeta */
+@media (max-width: 768px) {
+  .auth-container {
+    padding-top: 130px; /* Le da el espacio justo al buscador + botones */
+    align-items: flex-start;
+  }
+}
 .auth-card {
   width: 100%;
   max-width: 450px;

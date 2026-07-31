@@ -1,14 +1,20 @@
 .auth-container {
-  min-height: calc(100vh - 100px); /* Descuenta la altura del Navbar */
-  margin-top: 100px;               /* Empuja el contenedor por debajo del Navbar */
+  /* Al poner 100vh exactos y margin-top negativo compensamos el alto del Navbar sin dejar franjas */
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 30px 15px;
-  background: radial-gradient(circle at center, #1a0b2e 0%, #050110 100%);
+  padding: 100px 12px 40px 12px; /* 100px arriba para no pisar el Navbar */
+  
+  /* Forzamos el degradado completo */
+  background: radial-gradient(circle at center, #1a0b2e 0%, #050110 100%) !important;
   width: 100%;
   box-sizing: border-box;
+
+  /* Evita destellos oscuros extendiéndose por detrás del Navbar */
+  margin-top: -80px;
 }
+
 .auth-card {
   width: 100%;
   max-width: 450px;
@@ -133,11 +139,22 @@
   position: relative;
 }
 
-/* Ajuste responsive para celulares chicos (< 480px) */
+/* =========================================================
+   ADAPTABILIDAD RESPONSIVE (MÓVILES Y PANTALLAS PEQUEÑAS)
+   ========================================================= */
+@media (max-width: 768px) {
+  .auth-container {
+    margin-top: -80px; /* Mantener la alineación por detrás del Navbar */
+    padding-top: 150px; /* Le da espacio suficiente para librar el buscador del Navbar móvil */
+    padding-bottom: 50px;
+    align-items: flex-start;
+  }
+}
+
 @media (max-width: 480px) {
   .auth-container {
-    margin-top: 80px; /* Separación adaptada para móviles */
-    padding-top: 20px;
+    margin-top: -80px; /* Corregido: ya no vuelve a empujar hacia abajo */
+    padding-top: 140px;
     padding-bottom: 40px;
   }
 
